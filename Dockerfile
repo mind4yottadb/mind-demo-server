@@ -37,15 +37,13 @@ RUN certutil -d sql:$HOME/.pki/nssdb -N --empty-password
 RUN mkcert -install -key-file /opt/yottadb/current/plugin/etc/mind/mind.key -cert-file /opt/yottadb/current/plugin/etc/mind/mind.pem localhost
 
 # Install MIND
-ENV a=qs332aa
+ENV a=qs332aaa
 RUN cd /tmp && git clone -b v0.20.0 --single-branch https://github.com/mind4yottadb/mind-server.git && cd mind-server && mkdir build && cd build && cmake .. && make && make install
 
 
 RUN cp -r /tmp/mind-server/test/uApi/client-test/* $ydb_dist/plugin/etc/mind/uApi
 
 # create globals for testing
-#RUN mkdir /opt/mind /opt/mind/test
-#RUN chmod 777 /tmp/mind-server/test/mind-test-globals.zwr
 RUN cp /tmp/mind-server/test/mind-test-globals.zwr /opt/mind/test/
 RUN cp /tmp/mind-server/test/mindTestGlobals.zwr /opt/mind/test/
 RUN echo "Importing test globals..."
@@ -56,10 +54,6 @@ RUN echo "Test globals imported!"
 # to be removed from tests later...
 RUN mkdir /tmp/stef
 RUN echo "tst file" > /tmp/stef/a
-
-
-
-
 
 # Initialize files for working directory
 WORKDIR $ydb_dist/plugin/etc/mind/uApi
