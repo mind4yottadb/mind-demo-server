@@ -12,7 +12,7 @@
 
 FROM yottadb/yottadb:latest
 
-RUN apt-get update && apt-get install -y curl unzip wget cmake git gcc make \
+RUN apt-get update && apt-get install -y wget  git make cmake gcc \
 			libssl-dev libconfig-dev libgcrypt-dev libgpgme-dev \
 			libicu-dev libsodium-dev curl libcurl4-openssl-dev libnss3-tools
 
@@ -20,8 +20,6 @@ RUN apt-get update && apt-get install -y curl unzip wget cmake git gcc make \
 WORKDIR /tmp
 ENV ydb_dist="/opt/yottadb/current"
 ENV ydb_icu_version="70"
-RUN git clone https://gitlab.com/YottaDB/Util/YDBEncrypt
-RUN cd YDBEncrypt && make install
 
 ENV ydb_xc_libcurl="/opt/yottadb/current/plugin/libcurl.xc"
 
@@ -39,12 +37,12 @@ RUN certutil -d sql:$HOME/.pki/nssdb -N --empty-password
 RUN mkcert -install -key-file /opt/yottadb/current/plugin/etc/mind/mind.key -cert-file /opt/yottadb/current/plugin/etc/mind/mind.pem localhost
 
 # Install MIND
-ENV a=a
-RUN cd /tmp && git clone -b v0.20.0 --single-branch https://github.com/slalli/mind.git && cd mind && mkdir build && cd build && cmake .. && make && make install
+ENV a=qs332
+RUN cd /tmp && git clone -b v0.20.0 --single-branch https://github.com/mind4yottadb/mind-server.git && cd mind-server && mkdir build && cd build && cmake .. && make && make install
 
 
 # Initialize files for working directory
-WORKDIR $ydb_dist/plugin/etc/mind
+WORKDIR $ydb_dist/plugin/etc/mind/uApi
 
 EXPOSE 10000
 ENTRYPOINT ["sleep", "infinity"]
@@ -52,7 +50,7 @@ ENTRYPOINT ["sleep", "infinity"]
 # to build the image
 # docker image build  --progress=plain -t mind-server .
 
-# docker run -d --init --name=mind-server mind-server
+# docker run -d --init -p 10000:10000 --name=mind-server mind-server
 
 # docker exec -it mind-server bash
 
