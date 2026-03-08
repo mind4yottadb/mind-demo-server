@@ -16,6 +16,8 @@ RUN apt-get update && apt-get install -y wget  git make cmake gcc \
 			libssl-dev libconfig-dev libgcrypt-dev libgpgme-dev \
 			libicu-dev libsodium-dev curl libcurl4-openssl-dev libnss3-tools
 
+ARG SERVERMODE=plain
+
 # Install Encryption Plugin
 WORKDIR /tmp
 ENV ydb_dist="/opt/yottadb/current"
@@ -37,23 +39,28 @@ RUN certutil -d sql:$HOME/.pki/nssdb -N --empty-password
 RUN mkcert -install -key-file /opt/yottadb/current/plugin/etc/mind/mind.key -cert-file /opt/yottadb/current/plugin/etc/mind/mind.pem localhost
 
 # Install MIND
-ENV a=qs332aaa
+ENV a=qs333350564
 RUN cd /tmp && git clone -b v0.20.0 --single-branch https://github.com/mind4yottadb/mind-server.git && cd mind-server && mkdir build && cd build && cmake .. && make && make install
 
+# client testing
+RUN if [ "$SERVERMODE" = "client-test" ]; then \
+        cp /tmp/mind-server/test/mind-test-globals.zwr /opt/mind/test/ && \
+        cp /tmp/mind-server/test/mindTestGlobals.zwr /opt/mind/test/ && \
+        . $ydb_dist/ydb_env_set && $ydb_dist/mupip load -ignorechset /opt/mind/test/mindTestGlobals.zwr && \
+        . $ydb_dist/ydb_env_set && $ydb_dist/mupip load -ignorechset /opt/mind/test/mind-test-globals.zwr && \
+        mkdir /tmp/stef && \
+        cp /tmp/mind-server/test/uApi/client-test/* $ydb_dist/plugin/etc/mind/uApi && \
+        echo "tst file" > /tmp/stef/a;  \
+    fi
 
-RUN cp -r /tmp/mind-server/test/uApi/client-test/* $ydb_dist/plugin/etc/mind/uApi
-
-# create globals for testing
-RUN cp /tmp/mind-server/test/mind-test-globals.zwr /opt/mind/test/
-RUN cp /tmp/mind-server/test/mindTestGlobals.zwr /opt/mind/test/
-RUN echo "Importing test globals..."
-RUN . $ydb_dist/ydb_env_set && $ydb_dist/mupip load -ignorechset /opt/mind/test/mindTestGlobals.zwr
-RUN . $ydb_dist/ydb_env_set && $ydb_dist/mupip load -ignorechset /opt/mind/test/mind-test-globals.zwr
-RUN echo "Test globals imported!"
-
-# to be removed from tests later...
-RUN mkdir /tmp/stef
-RUN echo "tst file" > /tmp/stef/a
+# server testing
+RUN if [ "$SERVERMODE" = "server-test" ]; then \
+        mkdir $ydb_dist/plugin/etc/mind/uApi/server-test && \
+        cp /tmp/mind-server/test/uApi/server-test/* $ydb_dist/plugin/etc/mind/uApi/server-test && \
+        cp /tmp/mind-server/test/m/* $ydb_dist/plugin/etc/mind/uApi; \
+        cp /tmp/mind-server/test/mut-server.sh $ydb_dist/plugin/etc/mind/uApi && \
+        chmod +x $ydb_dist/plugin/etc/mind/uApi/mut-server.sh; \
+    fi
 
 # Initialize files for working directory
 WORKDIR $ydb_dist/plugin/etc/mind/uApi
