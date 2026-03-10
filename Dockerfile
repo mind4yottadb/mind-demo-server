@@ -45,7 +45,7 @@ RUN certutil -d sql:$HOME/.pki/nssdb -N --empty-password
 RUN mkcert -install -key-file /opt/yottadb/current/plugin/etc/mind/mind.key -cert-file /opt/yottadb/current/plugin/etc/mind/mind.pem localhost
 
 # Install MIND
-ENV a=67aa
+ENV a=67aaa65
 RUN cd /tmp && git clone -b $BRANCH --single-branch https://github.com/mind4yottadb/mind-server.git && cd mind-server && mkdir build && cd build && cmake .. && make && make install
 
 ENV mind_server="yes"
