@@ -11,10 +11,12 @@
 #                                                               #
 #################################################################
 
-if [ "$servermode" = "client-test" ] || [ "$servermode" = "plain" ]; then
+if [ "$servermode" = "client-test" ]; then
   ../mind
 elif [ "$servermode" = "server-test" ]; then
   ./mut-server.sh
+elif [ "startupmode" = "direct" ]; then
+  ../mind
 else
   sleep infinity
 fi
