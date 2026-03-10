@@ -17,6 +17,12 @@ RUN apt-get update && apt-get install -y wget  git make cmake gcc \
 			libicu-dev libsodium-dev curl libcurl4-openssl-dev libnss3-tools
 
 ARG SERVERMODE=plain
+ARG BRANCH=main
+ARG STARTUPMODE=direct
+
+ENV servermode=$SERVERMODE
+ENV branch=$BRANCH
+ENV startupmode=$STARTUPMODE
 
 # Install Encryption Plugin
 WORKDIR /tmp
@@ -39,9 +45,11 @@ RUN certutil -d sql:$HOME/.pki/nssdb -N --empty-password
 RUN mkcert -install -key-file /opt/yottadb/current/plugin/etc/mind/mind.key -cert-file /opt/yottadb/current/plugin/etc/mind/mind.pem localhost
 
 # Install MIND
-ENV a=qs333350564
-RUN cd /tmp && git clone -b v0.20.0 --single-branch https://github.com/mind4yottadb/mind-server.git && cd mind-server && mkdir build && cd build && cmake .. && make && make install
+ENV a=67aa
+RUN cd /tmp && git clone -b $BRANCH --single-branch https://github.com/mind4yottadb/mind-server.git && cd mind-server && mkdir build && cd build && cmake .. && make && make install
 
+ENV mind_server="yes"
+ENV DOCKER_HOST=tcp://127.0.0.1:10000
 # client testing
 RUN if [ "$SERVERMODE" = "client-test" ]; then \
         cp /tmp/mind-server/test/mind-test-globals.zwr /opt/mind/test/ && \
@@ -57,16 +65,20 @@ RUN if [ "$SERVERMODE" = "client-test" ]; then \
 RUN if [ "$SERVERMODE" = "server-test" ]; then \
         mkdir $ydb_dist/plugin/etc/mind/uApi/server-test && \
         cp /tmp/mind-server/test/uApi/server-test/* $ydb_dist/plugin/etc/mind/uApi/server-test && \
+        cp /tmp/mind-server/test/uApi/server-test/* $ydb_dist/plugin/etc/mind/uApi/ && \
         cp /tmp/mind-server/test/m/* $ydb_dist/plugin/etc/mind/uApi; \
         cp /tmp/mind-server/test/mut-server.sh $ydb_dist/plugin/etc/mind/uApi && \
-        chmod +x $ydb_dist/plugin/etc/mind/uApi/mut-server.sh; \
+        chmod +x $ydb_dist/plugin/etc/mind/uApi/mut-server.sh && \
+        ln -s $ydb_dist/plugin/etc/mind/mind /opt/mind/mind; \
     fi
 
 # Initialize files for working directory
 WORKDIR $ydb_dist/plugin/etc/mind/uApi
 
 EXPOSE 10000
-ENTRYPOINT ["sleep", "infinity"]
+COPY startup.sh /startup.sh
+ENTRYPOINT ["/startup.sh"]
+#ENTRYPOINT ["sleep","infinity"]
 
 # to build the image
 # docker image build  --progress=plain -t mind-server .
