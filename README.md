@@ -59,6 +59,8 @@ docker exec -it mind-server bash
 ../mind
 docker rm mind-server
 
+## STARTUP ARGS
+
 You can pass arguments by storing them in the env var: `mind_args`
 
 docker run -d --init --tty -p 10000:10000 --env mind_args=--use-tls=yes --name=mind-server mind-server
