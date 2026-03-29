@@ -41,6 +41,7 @@ docker rm mind-server
 
 ## Server-test
 
+
 docker image build  --build-arg SERVERMODE=server-test --build-arg BRANCH=v0.21.0 --progress=plain -t mind-server .
 docker run --init --tty -p 10000:10000 --name=mind-server mind-server
 docker rm mind-server
