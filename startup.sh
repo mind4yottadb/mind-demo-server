@@ -16,7 +16,7 @@ if [ "$servermode" = "client-test" ]; then
 elif [ "$servermode" = "server-test" ]; then
   ./mut-server.sh
 elif [ "$startupmode" = "direct" ]; then
-  ../mind $mind_args
+  ../mind "$mind_args"
 else
   sleep infinity
 fi
