@@ -14,7 +14,7 @@ FROM yottadb/yottadb:latest
 
 RUN apt-get update && apt-get install -y wget  git make cmake gcc \
 			libssl-dev libconfig-dev libgcrypt-dev libgpgme-dev \
-			libicu-dev libsodium-dev curl libcurl4-openssl-dev libnss3-tools
+			libicu-dev libsodium-dev curl libcurl4-openssl-dev libnss3-tools libicu74
 
 ARG SERVERMODE=plain
 ARG BRANCH=main
@@ -27,7 +27,6 @@ ENV startupmode=$STARTUPMODE
 # Install Encryption Plugin
 WORKDIR /tmp
 ENV ydb_dist="/opt/yottadb/current"
-ENV ydb_icu_version="70"
 
 ENV ydb_xc_libcurl="/opt/yottadb/current/plugin/libcurl.xc"
 
@@ -45,11 +44,12 @@ RUN certutil -d sql:$HOME/.pki/nssdb -N --empty-password
 RUN mkcert -install -key-file /opt/yottadb/current/plugin/etc/mind/mind.key -cert-file /opt/yottadb/current/plugin/etc/mind/mind.pem localhost
 
 # Install MIND
-ENV a=6%5t
-RUN cd /tmp && git clone -b $BRANCH --single-branch https://github.com/mind4yottadb/mind-server.git && cd mind-server && mkdir build && cd build && cmake .. && make && make install
+ENV a=6%5i14519
+RUN cd /tmp && git clone -b $BRANCH --single-branch https://github.com/mind4yottadb/mind-server.git && cd mind-server && mkdir build && cd build && cmake .. -Dtest_mode=1 -Dtls=1 && make && make install
 
-ENV mind_server="yes"
+#ENV mind_server="yes"
 ENV DOCKER_HOST=tcp://127.0.0.1:10000
+
 # client testing
 RUN if [ "$SERVERMODE" = "client-test" ]; then \
         cp /tmp/mind-server/test/mind-test-globals.zwr /opt/mind/test/ && \
@@ -63,17 +63,16 @@ RUN if [ "$SERVERMODE" = "client-test" ]; then \
 
 # server testing
 RUN if [ "$SERVERMODE" = "server-test" ]; then \
-        mkdir $ydb_dist/plugin/etc/mind/uApi/server-test && \
-        cp /tmp/mind-server/test/uApi/server-test/* $ydb_dist/plugin/etc/mind/uApi/server-test && \
-        cp /tmp/mind-server/test/uApi/server-test/* $ydb_dist/plugin/etc/mind/uApi/ && \
-        cp /tmp/mind-server/test/m/* $ydb_dist/plugin/etc/mind/uApi; \
-        cp /tmp/mind-server/test/mut-server.sh $ydb_dist/plugin/etc/mind/uApi && \
-        chmod +x $ydb_dist/plugin/etc/mind/uApi/mut-server.sh && \
-        ln -s $ydb_dist/plugin/etc/mind/mind /opt/mind/mind; \
+        mkdir $ydb_dist/plugin/etc/mind/uApi/so && \
+        cp -r /tmp/mind-server/test/uApi/so/* $ydb_dist/plugin/etc/mind/uApi/so && \
+        cp /tmp/mind-server/commands/* /opt/mind && \
+        chmod 777 /opt/mind/test/mut.sh && \
+        chmod 777 /opt/mind/mind && \
+        chmod 777 $ydb_dist/plugin/etc/mind/mind.conf; \
     fi
 
 # Initialize files for working directory
-WORKDIR $ydb_dist/plugin/etc/mind/uApi
+WORKDIR /opt/mind
 
 EXPOSE 10000
 COPY startup.sh /startup.sh

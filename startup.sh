@@ -14,7 +14,10 @@
 if [ "$servermode" = "client-test" ]; then
   ../mind $mind_args
 elif [ "$servermode" = "server-test" ]; then
-  ./mut-server.sh
+  export ydb_routines='/opt/mind/o*(/opt/mind/m /opt/mind/test/m) '
+  export ydb_chset="M"
+  source /opt/yottadb/current/ydb_env_set
+  /opt/mind/test/mut.sh
 elif [ "$startupmode" = "direct" ]; then
   ../mind "$mind_args"
 else
