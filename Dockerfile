@@ -44,7 +44,7 @@ RUN certutil -d sql:$HOME/.pki/nssdb -N --empty-password
 RUN mkcert -install -key-file /opt/yottadb/current/plugin/etc/mind/mind.key -cert-file /opt/yottadb/current/plugin/etc/mind/mind.pem localhost
 
 # Install MIND
-ENV a=6%5i14525
+ENV a=6%5i14529
 RUN cd /tmp && git clone -b $BRANCH --single-branch https://github.com/mind4yottadb/mind-server.git && cd mind-server && mkdir build && cd build && cmake .. -Dtest_mode=1 -Dtls=1 && make && make install
 
 #ENV mind_server="yes"
@@ -58,7 +58,12 @@ RUN if [ "$SERVERMODE" = "client-test" ]; then \
         . $ydb_dist/ydb_env_set && $ydb_dist/mupip load -ignorechset /opt/mind/test/mind-test-globals.zwr && \
         mkdir /tmp/stef && \
         cp /tmp/mind-server/test/uApi/client-test/* $ydb_dist/plugin/etc/mind/uApi && \
-        echo "tst file" > /tmp/stef/a;  \
+        echo "tst file" > /tmp/stef/a &&  \
+        cp /tmp/mind-server/commands/* /opt/mind && \
+        cp /opt/mind/test/uApi/client-test/* /opt/mind/test/uApi && \
+        cp -rf /opt/mind/test/uApi/ $ydb_dist/plugin/etc/mind/uApi && \
+        rm  $ydb_dist/plugin/etc/mind/uApi/hooks-and-code.json && \
+        chmod 777 /opt/mind/mind; \
     fi
 
 # server testing

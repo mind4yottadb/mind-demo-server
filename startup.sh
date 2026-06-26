@@ -12,14 +12,20 @@
 #################################################################
 
 if [ "$servermode" = "client-test" ]; then
-  ../mind $mind_args
+  #export ydb_routines="$ydb_dist/plugin/o/mind.so "
+  /opt/mind/mind "$mind_args"
+  echo "started..."
+
 elif [ "$servermode" = "server-test" ]; then
   export ydb_routines='/opt/mind/o*(/opt/mind/m /opt/mind/test/m) '
   export ydb_chset="M"
   source /opt/yottadb/current/ydb_env_set
   /opt/mind/test/mut.sh
+
 elif [ "$startupmode" = "direct" ]; then
-  ../mind "$mind_args"
+  ./mind "$mind_args"
+
 else
   sleep infinity
+
 fi
