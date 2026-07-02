@@ -81,6 +81,7 @@ WORKDIR /opt/mind
 
 EXPOSE 10000
 COPY startup.sh /startup.sh
+RUN chmod 777 /startup.sh
 ENTRYPOINT ["/startup.sh"]
 
 # to build the image
