@@ -49,6 +49,7 @@ RUN cd /tmp && git clone -b $BRANCH --single-branch https://github.com/mind4yott
 
 #ENV mind_server="yes"
 ENV DOCKER_HOST=tcp://127.0.0.1:10000
+ENV test_branch_server=$BRANCH
 
 # client testing
 RUN if [ "$SERVERMODE" = "client-test" ]; then \
